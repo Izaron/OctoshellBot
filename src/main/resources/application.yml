@@ -1,0 +1,14 @@
+spring:
+  profiles:
+    active: test
+
+bot:
+  token: XXXXXXXXX:XXXXXXXXXXXXX--XXXXXXXXXXXXXXXXXXXX
+  username: OctoshellBot
+  creator-id: 202048837 # @cloudy_district
+
+  use-proxy: true
+  proxy:
+    host: 94.177.230.197
+    port: 1080
+    type: SOCKS5 # possible values: NO_PROXY, HTTP, SOCKS4, SOCKS5
