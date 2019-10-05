@@ -7,7 +7,7 @@ bot:
   username: OctoshellBot
   creator-id: 202048837 # @cloudy_district
 
-  use-proxy: true
+  use-proxy: false
   proxy:
     host: 94.177.230.197
     port: 1080
