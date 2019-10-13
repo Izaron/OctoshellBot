@@ -1,14 +1,25 @@
 spring:
   profiles:
     active: test
+  data:
+    mongodb:
+      uri: mongodb+srv://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 bot:
-  token: XXXXXXXXX:XXXXXXXXXXXXX--XXXXXXXXXXXXXXXXXXXX
+  token: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   username: OctoshellBot
   creator-id: 202048837 # @cloudy_district
 
-  use-proxy: false
+  use-proxy: true
   proxy:
-    host: 94.177.230.197
-    port: 1080
+    host: zhum-eu.freeddns.org
+    port: 9000
     type: SOCKS5 # possible values: NO_PROXY, HTTP, SOCKS4, SOCKS5
+
+    use-auth: true
+    auth:
+      user: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      password: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+remote:
+  url: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX

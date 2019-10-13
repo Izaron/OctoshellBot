@@ -1,6 +1,6 @@
-package ru.octoshell.bot;
+package ru.octoshell.bot.ws;
 
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Log4j2
+@Slf4j
 @RestController
-public class BotRestController {
+public class WebController {
 
     private AtomicInteger value = new AtomicInteger();
 
