@@ -1,4 +1,4 @@
-package ru.octoshell.bot.service;
+package ru.octoshell.bot.service.remote;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
@@ -8,11 +8,11 @@ import java.util.Map;
 
 @Slf4j
 @Service
-public class OctoshellUsersAuthentificationService {
+public class AuthentificationService {
 
     private final RemoteCommandsService remoteCommandsService;
 
-    public OctoshellUsersAuthentificationService(RemoteCommandsService remoteCommandsService) {
+    public AuthentificationService(RemoteCommandsService remoteCommandsService) {
         this.remoteCommandsService = remoteCommandsService;
     }
 
@@ -38,7 +38,7 @@ public class OctoshellUsersAuthentificationService {
         INACTIVE_TOKEN(1, "Введен неактивный токен"),
         WRONG_TOKEN(2, "Введен неверный токен"),
         WRONG_EMAIL(3, "Введен неверный email"),
-        SERVICE_UNAVAILABLE(4, "Сервис аутентификации временно недоступен");
+        SERVICE_UNAVAILABLE(4, "Сервис временно недоступен");
 
         private final Integer code;
         private final String description;

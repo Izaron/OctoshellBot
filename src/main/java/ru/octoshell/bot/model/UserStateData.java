@@ -5,11 +5,10 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
-@Document(collection = "bot_links")
-public class BotLink {
+@Document(collection = "user_state")
+public class UserStateData {
 
     @Id
-    Long userId;
-    String token;
-    String email;
+    Integer userId;
+    String state;
 }

@@ -1,4 +1,4 @@
-package ru.octoshell.bot.service;
+package ru.octoshell.bot.service.remote;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
