@@ -2,6 +2,7 @@ package ru.octoshell.bot.service.remote;
 
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -24,8 +25,8 @@ public class AuthentificationService {
         );
 
         try {
-            String response = remoteCommandsService.sendCommand(map);
-            return AuthStatus.findByCode(Integer.parseInt(response));
+            JSONObject response = remoteCommandsService.sendCommandJson(map);
+            return AuthStatus.findByCode(response.getInt("status"));
         } catch (Exception e) {
             log.error("Something wrong with authentificate()");
             log.error(e.toString());
