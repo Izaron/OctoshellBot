@@ -8,19 +8,25 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.octoshell.bot.service.BotLinkService;
+import ru.octoshell.bot.service.LocaleService;
 import ru.octoshell.bot.service.OctoshellTelegramBot;
 import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.UserStateService;
 
 @Slf4j
 @Service
 public class AuthNewEmailStateListener implements StateListener {
 
-    private static final String MESSAGE = "Введите новый e-mail";
-
     private final BotLinkService botLinkService;
+    private final LocaleService localeService;
+    private final UserStateService userStateService;
 
-    public AuthNewEmailStateListener(BotLinkService botLinkService) {
+    public AuthNewEmailStateListener(BotLinkService botLinkService,
+                                     LocaleService localeService,
+                                     UserStateService userStateService) {
         this.botLinkService = botLinkService;
+        this.localeService = localeService;
+        this.userStateService = userStateService;
     }
 
     @Override
@@ -39,6 +45,9 @@ public class AuthNewEmailStateListener implements StateListener {
 
     @Override
     public void drawState(UserState userState, OctoshellTelegramBot bot, Message latestMessage) {
+        Integer userId = latestMessage.getFrom().getId();
+        String locale = userStateService.getUserLocale(userId);
+
         SendMessage sendMessage = new SendMessage();
 
         ForceReplyKeyboard keyboard = new ForceReplyKeyboard();
@@ -46,7 +55,7 @@ public class AuthNewEmailStateListener implements StateListener {
         sendMessage.setReplyMarkup(keyboard);
 
         sendMessage.setChatId(latestMessage.getChatId().toString());
-        sendMessage.setText(MESSAGE);
+        sendMessage.setText(localeService.getProperty(locale, "auth.email.message"));
 
         try {
             bot.send(sendMessage);

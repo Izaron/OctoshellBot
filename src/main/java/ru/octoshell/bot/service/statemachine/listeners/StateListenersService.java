@@ -19,23 +19,27 @@ public class StateListenersService implements StateListener {
     private final AuthSettingsStateListener authSettingsStateListener;
     private final AuthNewEmailStateListener authNewEmailStateListener;
     private final AuthNewTokenStateListener authNewTokenStateListener;
+    private final LocaleSettingsStateListener localeSettingsStateListener;
 
     private List<StateListener> listenerList;
 
     public StateListenersService(MainMenuStateListener mainMenuStateListener,
                                  AuthSettingsStateListener authSettingsStateListener,
                                  AuthNewEmailStateListener authNewEmailStateListener,
-                                 AuthNewTokenStateListener authNewTokenStateListener) {
+                                 AuthNewTokenStateListener authNewTokenStateListener,
+                                 LocaleSettingsStateListener localeSettingsStateListener) {
         this.mainMenuStateListener = mainMenuStateListener;
         this.authSettingsStateListener = authSettingsStateListener;
         this.authNewEmailStateListener = authNewEmailStateListener;
         this.authNewTokenStateListener = authNewTokenStateListener;
+        this.localeSettingsStateListener = localeSettingsStateListener;
 
         listenerList = Arrays.asList(
                 mainMenuStateListener,
                 authSettingsStateListener,
                 authNewEmailStateListener,
-                authNewTokenStateListener
+                authNewTokenStateListener,
+                localeSettingsStateListener
         );
     }
 

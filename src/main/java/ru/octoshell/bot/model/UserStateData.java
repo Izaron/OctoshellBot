@@ -11,4 +11,5 @@ public class UserStateData {
     @Id
     Integer userId;
     String state;
+    String locale;
 }

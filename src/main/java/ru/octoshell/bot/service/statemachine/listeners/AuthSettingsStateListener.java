@@ -1,19 +1,21 @@
 package ru.octoshell.bot.service.statemachine.listeners;
 
-import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.octoshell.bot.service.BotLinkService;
+import ru.octoshell.bot.service.LocaleService;
 import ru.octoshell.bot.service.OctoshellTelegramBot;
 import ru.octoshell.bot.service.remote.AuthentificationService;
 import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.UserStateService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +25,19 @@ import java.util.Objects;
 @Service
 public class AuthSettingsStateListener implements StateListener {
 
-    private static final String MESSAGE = "Нажмите на кнопку в меню";
-
     private final BotLinkService botLinkService;
     private final AuthentificationService authentificationService;
+    private final UserStateService userStateService;
+    private final LocaleService localeService;
 
     public AuthSettingsStateListener(BotLinkService botLinkService,
-                                     AuthentificationService authentificationService) {
+                                     AuthentificationService authentificationService,
+                                     UserStateService userStateService,
+                                     LocaleService localeService) {
         this.botLinkService = botLinkService;
         this.authentificationService = authentificationService;
+        this.userStateService = userStateService;
+        this.localeService = localeService;
     }
 
     @Override
@@ -40,24 +46,24 @@ public class AuthSettingsStateListener implements StateListener {
 
         if (message.hasText()) {
             String text = message.getText();
-            Button button = Button.findByDesc(text);
+            User user = message.getFrom();
+            String locale = userStateService.getUserLocale(user.getId());
+            Button button = Button.findByText(localeService, locale, text);
 
             if (Objects.nonNull(button)) {
                 switch (button) {
-                    case BACK:
-                        return UserState.MAIN_MENU;
                     case CHANGE_EMAIL:
                         return UserState.AUTH_NEW_EMAIL;
                     case CHANGE_TOKEN:
                         return UserState.AUTH_NEW_TOKEN;
                     case SHOW_SETTINGS:
-                        showSettings(bot, update);
+                        showSettings(locale, bot, update);
                         break;
                     case CHECK_CONNECTION:
-                        checkConnection(bot, update);
+                        checkConnection(locale, bot, update);
                         break;
                     default:
-                        break;
+                        return UserState.MAIN_MENU;
                 }
             }
         }
@@ -65,19 +71,24 @@ public class AuthSettingsStateListener implements StateListener {
         return userState;
     }
 
-    private void showSettings(OctoshellTelegramBot bot, Update update) {
+    private void showSettings(String locale, OctoshellTelegramBot bot, Update update) {
         Integer userId = update.getMessage().getFrom().getId();
-        String email = StringUtils.defaultIfEmpty(botLinkService.getEmail(userId), "<Пустой e-mail>");
-        String token = StringUtils.defaultIfEmpty(botLinkService.getToken(userId), "<Пустой токен>");
+        String email = StringUtils.defaultIfEmpty(botLinkService.getEmail(userId),
+                localeService.getProperty(locale, "auth.blank-email"));
+        String token = StringUtils.defaultIfEmpty(botLinkService.getToken(userId),
+                localeService.getProperty(locale, "auth.blank-token"));
 
         StringBuilder sb = new StringBuilder();
-        sb.append(":gear: Настройки аутентификации\n");
-        sb.append("E-mail: ").append(email).append("\n");
-        sb.append("Токен: ").append(token).append("\n");
+        sb.append(localeService.getProperty(locale, "auth.settings.header"))
+                .append("\n");
+        sb.append(localeService.getProperty(locale, "auth.settings.email"))
+                .append(": ").append(email).append("\n");
+        sb.append(localeService.getProperty(locale, "auth.settings.token"))
+                .append(": ").append(token).append("\n");
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(userId.toString());
-        sendMessage.setText(EmojiParser.parseToUnicode(sb.toString()));
+        sendMessage.setText(sb.toString());
 
         try {
             bot.send(sendMessage);
@@ -86,7 +97,7 @@ public class AuthSettingsStateListener implements StateListener {
         }
     }
 
-    private void checkConnection(OctoshellTelegramBot bot, Update update) {
+    private void checkConnection(String locale, OctoshellTelegramBot bot, Update update) {
         Integer userId = update.getMessage().getFrom().getId();
         String email = StringUtils.defaultString(botLinkService.getEmail(userId));
         String token = StringUtils.defaultString(botLinkService.getToken(userId));
@@ -95,12 +106,12 @@ public class AuthSettingsStateListener implements StateListener {
                 authentificationService.authentificate(email, token);
 
         StringBuilder sb = new StringBuilder();
-        sb.append(":crystal_ball: Проверка подключения\n");
-        sb.append(authStatus.getDescription());
+        sb.append(localeService.getProperty(locale, "auth.check.header")).append("\n");
+        sb.append(localeService.getProperty(locale, authStatus.getDescription()));
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(userId.toString());
-        sendMessage.setText(EmojiParser.parseToUnicode(sb.toString()));
+        sendMessage.setText(sb.toString());
 
         try {
             bot.send(sendMessage);
@@ -109,16 +120,20 @@ public class AuthSettingsStateListener implements StateListener {
         }
     }
 
-    private KeyboardRow buildRow(Button... buttons) {
+    private KeyboardRow buildRow(String locale, Button... buttons) {
         KeyboardRow keyboardRow = new KeyboardRow();
         for (Button button : buttons) {
-            keyboardRow.add(button.getDesc());
+            String desc = localeService.getProperty(locale, button.getDesc());
+            keyboardRow.add(desc);
         }
         return keyboardRow;
     }
 
     @Override
     public void drawState(UserState userState, OctoshellTelegramBot bot, Message latestMessage) {
+        Integer userId = latestMessage.getFrom().getId();
+        String locale = userStateService.getUserLocale(userId);
+
         SendMessage sendMessage = new SendMessage();
 
         ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
@@ -129,16 +144,16 @@ public class AuthSettingsStateListener implements StateListener {
 
         List<KeyboardRow> keyboard = new ArrayList<>();
 
-        keyboard.add(buildRow(Button.CHANGE_EMAIL, Button.CHANGE_TOKEN));
-        keyboard.add(buildRow(Button.SHOW_SETTINGS));
-        keyboard.add(buildRow(Button.CHECK_CONNECTION));
-        keyboard.add(buildRow(Button.BACK));
+        keyboard.add(buildRow(locale, Button.CHANGE_EMAIL, Button.CHANGE_TOKEN));
+        keyboard.add(buildRow(locale, Button.SHOW_SETTINGS));
+        keyboard.add(buildRow(locale, Button.CHECK_CONNECTION));
+        keyboard.add(buildRow(locale, Button.BACK));
 
         replyKeyboardMarkup.setKeyboard(keyboard);
 
         sendMessage.setReplyMarkup(replyKeyboardMarkup);
         sendMessage.setChatId(latestMessage.getChatId().toString());
-        sendMessage.setText(MESSAGE);
+        sendMessage.setText(localeService.getProperty(locale, "auth.message"));
 
         try {
             bot.send(sendMessage);
@@ -148,21 +163,21 @@ public class AuthSettingsStateListener implements StateListener {
     }
 
     private enum Button {
-        CHANGE_EMAIL(":e-mail: Поменять e-mail"),
-        CHANGE_TOKEN(":key: Поменять токен"),
-        SHOW_SETTINGS(":eyes: Вывести текущие настройки авторизации"),
-        CHECK_CONNECTION(":electric_plug: Проверка подключения к Octoshell"),
-        BACK(":door: Назад");
+        CHANGE_EMAIL("auth.button.change-email"),
+        CHANGE_TOKEN("auth.button.change-token"),
+        SHOW_SETTINGS("auth.button.show-settings"),
+        CHECK_CONNECTION("auth.button.check-connection"),
+        BACK("auth.button.back");
 
         private final String desc;
 
         Button(String desc) {
-            this.desc = EmojiParser.parseToUnicode(desc);
+            this.desc = desc;
         }
 
-        public static Button findByDesc(String desc) {
+        public static Button findByText(LocaleService localeService, String locale, String text) {
             for (Button button : values()) {
-                if (StringUtils.equals(desc, button.getDesc())) {
+                if (StringUtils.equals(localeService.getProperty(locale, button.getDesc()), text)) {
                     return button;
                 }
             }

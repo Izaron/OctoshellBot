@@ -35,11 +35,11 @@ public class AuthentificationService {
     }
 
     public enum AuthStatus {
-        SUCCESS(0, "Успешная аутентификация!"),
-        INACTIVE_TOKEN(1, "Введен неактивный токен"),
-        WRONG_TOKEN(2, "Введен неверный токен"),
-        WRONG_EMAIL(3, "Введен неверный email"),
-        SERVICE_UNAVAILABLE(4, "Сервис временно недоступен");
+        SUCCESS(0, "auth.status.success"),
+        INACTIVE_TOKEN(1, "auth.status.inactive-token"),
+        WRONG_TOKEN(2, "auth.status.wrong-token"),
+        WRONG_EMAIL(3, "auth.status.wrong-email"),
+        SERVICE_UNAVAILABLE(4, "auth.status.service-unavailable");
 
         private final Integer code;
         private final String description;
