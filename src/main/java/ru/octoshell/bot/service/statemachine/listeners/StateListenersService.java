@@ -15,31 +15,30 @@ import java.util.Objects;
 @Service
 public class StateListenersService implements StateListener {
 
-    private final MainMenuStateListener mainMenuStateListener;
-    private final AuthSettingsStateListener authSettingsStateListener;
-    private final AuthNewEmailStateListener authNewEmailStateListener;
-    private final AuthNewTokenStateListener authNewTokenStateListener;
-    private final LocaleSettingsStateListener localeSettingsStateListener;
-
     private List<StateListener> listenerList;
 
     public StateListenersService(MainMenuStateListener mainMenuStateListener,
                                  AuthSettingsStateListener authSettingsStateListener,
                                  AuthNewEmailStateListener authNewEmailStateListener,
                                  AuthNewTokenStateListener authNewTokenStateListener,
-                                 LocaleSettingsStateListener localeSettingsStateListener) {
-        this.mainMenuStateListener = mainMenuStateListener;
-        this.authSettingsStateListener = authSettingsStateListener;
-        this.authNewEmailStateListener = authNewEmailStateListener;
-        this.authNewTokenStateListener = authNewTokenStateListener;
-        this.localeSettingsStateListener = localeSettingsStateListener;
+                                 LocaleSettingsStateListener localeSettingsStateListener,
+                                 TicketProjectChooseStateListener ticketProjectChooseStateListener,
+                                 TicketTopicChooseStateListener ticketTopicChooseStateListener,
+                                 TicketClusterChooseStateListener ticketClusterChooseStateListener,
+                                 TicketSubjectChooseStateListener ticketSubjectChooseStateListener,
+                                 TicketMessageChooseStateListener ticketMessageChooseStateListener) {
 
         listenerList = Arrays.asList(
                 mainMenuStateListener,
                 authSettingsStateListener,
                 authNewEmailStateListener,
                 authNewTokenStateListener,
-                localeSettingsStateListener
+                localeSettingsStateListener,
+                ticketProjectChooseStateListener,
+                ticketTopicChooseStateListener,
+                ticketClusterChooseStateListener,
+                ticketSubjectChooseStateListener,
+                ticketMessageChooseStateListener
         );
     }
 
