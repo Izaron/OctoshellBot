@@ -1,11 +1,13 @@
 package ru.octoshell.bot.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -39,8 +41,7 @@ public class LocaleService {
         Properties properties = new Properties();
         String filename = String.format("classpath:locales/%s.properties", lang);
         try {
-            File file = ResourceUtils.getFile(filename);
-            InputStream in = new FileInputStream(file);
+            InputStream in = new ClassPathResource(filename).getInputStream();
             properties.load(in);
         } catch (IOException e) {
             log.error(e.getMessage());
