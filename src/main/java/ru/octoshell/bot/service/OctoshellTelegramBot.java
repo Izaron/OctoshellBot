@@ -18,18 +18,15 @@ public class OctoshellTelegramBot extends TelegramLongPollingBot {
 
     private final String botToken;
     private final String botUsername;
-    private final int creatorId;
     private final StateMachineService stateMachineService;
 
     protected OctoshellTelegramBot(@Value("${bot.token}") String botToken,
                                    @Value("${bot.username}") String botUsername,
-                                   @Value("${bot.creator-id}") int creatorId,
                                    BotConnectionSettingsService options,
                                    StateMachineService stateMachineService) {
         super(options);
         this.botToken = botToken;
         this.botUsername = botUsername;
-        this.creatorId = creatorId;
         this.stateMachineService = stateMachineService;
     }
 

@@ -8,7 +8,6 @@ spring:
 bot:
   token: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   username: OctoshellBot
-  creator-id: 202048837 # @cloudy_district
 
   use-proxy: true
   proxy:
