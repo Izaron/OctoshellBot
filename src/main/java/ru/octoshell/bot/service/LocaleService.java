@@ -3,11 +3,10 @@ package ru.octoshell.bot.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -41,11 +40,23 @@ public class LocaleService {
         Properties properties = new Properties();
         String filename = String.format("classpath:locales/%s.properties", lang);
         try {
-            InputStream in = new ClassPathResource(filename).getInputStream();
+            InputStream in;
+            if (isRunningFromJar()) {
+                in = new ClassPathResource(filename).getInputStream();
+            } else {
+                File file = ResourceUtils.getFile(filename);
+                in = new FileInputStream(file);
+            }
             properties.load(in);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
         propMap.put(lang, properties);
+    }
+
+    private boolean isRunningFromJar() {
+        String className = this.getClass().getName().replace('.', '/');
+        String classJar = this.getClass().getResource("/" + className + ".class").toString();
+        return classJar.startsWith("jar:");
     }
 }

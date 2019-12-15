@@ -68,6 +68,9 @@ public class MainMenuStateListener implements StateListener {
                         return UserState.TICKET_PROJECT_CHOOSE;
                     case TO_LOCALE_SETTINGS:
                         return UserState.LOCALE_SETTINGS;
+                    case SHOW_INFORMATION:
+                        showInformation(bot, update);
+                        break;
                     default:
                         break;
                 }
@@ -75,6 +78,21 @@ public class MainMenuStateListener implements StateListener {
         }
 
         return userState;
+    }
+
+    private void showInformation(OctoshellTelegramBot bot, Update update) {
+        Integer userId = update.getMessage().getFrom().getId();
+        String locale = userStateService.getUserLocale(userId);
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(userId.toString());
+        sendMessage.setText(localeService.getProperty(locale, "main.information"));
+
+        try {
+            bot.send(sendMessage);
+        } catch (TelegramApiException e) {
+            log.error(e.toString());
+        }
     }
 
     private void showUserProjects(OctoshellTelegramBot bot, Update update) {
@@ -234,6 +252,7 @@ public class MainMenuStateListener implements StateListener {
         keyboard.add(buildRow(locale, Button.SHOW_TICKETS, Button.CREATE_TICKETS));
         keyboard.add(buildRow(locale, Button.TO_AUTH_SETTINGS));
         keyboard.add(buildRow(locale, Button.TO_LOCALE_SETTINGS));
+        keyboard.add(buildRow(locale, Button.SHOW_INFORMATION));
 
         replyKeyboardMarkup.setKeyboard(keyboard);
 
@@ -253,7 +272,8 @@ public class MainMenuStateListener implements StateListener {
         TO_AUTH_SETTINGS("main.button.to-auth-settings"),
         TO_LOCALE_SETTINGS("main.button.to-locale-settings"),
         SHOW_TICKETS("main.button.show-tickets"),
-        CREATE_TICKETS("main.button.create-tickets");
+        CREATE_TICKETS("main.button.create-tickets"),
+        SHOW_INFORMATION("main.button.information");
 
         private final String desc;
 
