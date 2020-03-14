@@ -6,6 +6,9 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Точка входа приложения
+ */
 @SpringBootApplication
 public class OctoshellBotApplication {
 
@@ -14,7 +17,7 @@ public class OctoshellBotApplication {
 	}
 
     @Bean
-    public RestTemplate restTemplate(RestTemplateBuilder builder) {
-        return builder.build();
+    public RestTemplate restTemplate() {
+        return new RestTemplateBuilder().build();
     }
 }

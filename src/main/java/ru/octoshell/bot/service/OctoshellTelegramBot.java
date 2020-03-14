@@ -7,7 +7,8 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.octoshell.bot.service.statemachine.StateMachineService;
+import ru.octoshell.bot.service.settings.TelegramSettingsService;
+import ru.octoshell.bot.service.statemachine.StateMachineEngineService;
 
 import java.io.Serializable;
 import java.time.ZonedDateTime;
@@ -18,16 +19,16 @@ public class OctoshellTelegramBot extends TelegramLongPollingBot {
 
     private final String botToken;
     private final String botUsername;
-    private final StateMachineService stateMachineService;
+    private final StateMachineEngineService stateMachineEngineService;
 
     protected OctoshellTelegramBot(@Value("${bot.token}") String botToken,
                                    @Value("${bot.username}") String botUsername,
-                                   BotConnectionSettingsService options,
-                                   StateMachineService stateMachineService) {
+                                   TelegramSettingsService options,
+                                   StateMachineEngineService stateMachineEngineService) {
         super(options);
         this.botToken = botToken;
         this.botUsername = botUsername;
-        this.stateMachineService = stateMachineService;
+        this.stateMachineEngineService = stateMachineEngineService;
     }
 
     @Override
@@ -36,7 +37,7 @@ public class OctoshellTelegramBot extends TelegramLongPollingBot {
         log.info(update.toString());
         long millisStarted = System.currentTimeMillis();
 
-        stateMachineService.processUpdate(this, update);
+        stateMachineEngineService.processUpdate(this, update);
 
         long processingTime = System.currentTimeMillis() - millisStarted;
         log.info(String.format("[%s] Processing of update [%s] ended at %s%n---> Processing time: [%d ms] <---%n", this.botUsername, update.getUpdateId(), ZonedDateTime.now(), processingTime));

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
+import ru.octoshell.bot.service.settings.TelegramSettingsService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -17,13 +18,13 @@ import java.net.PasswordAuthentication;
 public class TelegramApiRunnableService {
 
     private final OctoshellTelegramBot octoshellTelegramBot;
-    private final BotConnectionSettingsService botConnectionSettingsService;
+    private final TelegramSettingsService telegramSettingsService;
     private Thread botThread;
 
     public TelegramApiRunnableService(OctoshellTelegramBot octoshellTelegramBot,
-                                      BotConnectionSettingsService botConnectionSettingsService) {
+                                      TelegramSettingsService telegramSettingsService) {
         this.octoshellTelegramBot = octoshellTelegramBot;
-        this.botConnectionSettingsService = botConnectionSettingsService;
+        this.telegramSettingsService = telegramSettingsService;
     }
 
     @PostConstruct
@@ -47,9 +48,9 @@ public class TelegramApiRunnableService {
         }
 
         private void setAuthIfNeeded() {
-            if (BooleanUtils.isTrue(botConnectionSettingsService.getUseAuth())) {
-                String authUser = botConnectionSettingsService.getAuthUser();
-                String authPassword = botConnectionSettingsService.getAuthPassword();
+            if (BooleanUtils.isTrue(telegramSettingsService.getUseAuth())) {
+                String authUser = telegramSettingsService.getAuthUser();
+                String authPassword = telegramSettingsService.getAuthPassword();
 
                 Authenticator.setDefault(new Authenticator() {
                     @Override
