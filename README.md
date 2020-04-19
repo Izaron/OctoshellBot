@@ -1,38 +1,97 @@
 # Octoshell Telegram Bot
 
-**Octoshell** is an access management system for HPC centers.
-It is hosted on https://users.parallel.ru.
+**Octoshell** это система управления доступом к HPC-центрам.
+Оно расположено на https://users.parallel.ru.
 
-This project is a **Telegram bot** for Octoshell users.
-You may access the bot by its username `@OctoshellBot` or by link [t.me/OctoshellBot](t.me/OctoshellBot)
+Этот проект - вспомогательный.
+Сейчас проект включает в себя **Telegram**-бота (`@OctoshellBot` или [t.me/OctoshellBot](t.me/OctoshellBot))
+и **ВКонтакте**-бота (в виде сообщества https://vk.com/octoshell), но может работать и с другими ботами.
 
-This bot is written on **Java 8** and based mainly on Java Spring Framework, but also uses other libraries
-like Apache Commons and TelegramBots.
+Бот написан на **Java 8** и использует Java Spring Framework, но другие библиотеки тоже,
+например Apache Commons и TelegramBots.
 
-### Features
+### Как запустить проект локально по-стандартному
 
-Stay tuned for updates, not worth looking rn.
+*Warning*: К сожалению, **ВКонтакте**-приложения требуют для работы уже запущенного на сервере приложения,
+к которому **ВКонтакте** может обратиться по HTTP. **Telegram**-бот работает сразу.
 
-### How to start exploring and developing this project
+0. Клонируйте или загрузите этот проект: `git clone https://github.com/Izaron/OctoshellBot.git`
+0. В папке с проектом можно построить приложение из консоли: `mvn -f pom.xml clean package`
+0. Чтобы не перекомпилировать проект каждый раз при изменении настроек
+([application.yml](https://github.com/Izaron/OctoshellBot/blob/master/src/main/resources/application.yml)),
+можно указать любой файл настроек
+при запуске. Вот так запускается по умолчанию с этим файлом `java -jar target/octoshell-bot-0.0.1-SNAPSHOT.jar --spring.config.location=src/main/resources/application.yml`
 
-0. Clone or download this project.
-Open your local copy in any IDE that is able to handle Maven projects
-(**Intellij Idea** is a fine option). The IDE will start downloading necessary dependencies automatically.
+### Как запустить проект по-нестандартному
 
-0. You'll probably need to install a plugin for Lombok compatibility (a cool library for fixing Java syntactical problems).
-Read a manual [https://www.baeldung.com/lombok-ide](https://www.baeldung.com/lombok-ide).
+Приложение можно запустить как с помощью Docker, так и отправить на Heroku, где бесплатно можно получить
+доменное имя и какие-никакие ресурсы для приложения.
 
-0. Technically, you are free to launch the project immediately, but you firstly should
-provide bot credentials. Open [src/main/resources/application.yml](src/main/resources/application.yml)
-and enter the **token** and the **username** of the bot.
-For testing purposes you can create your own bot, that will have almost the same functionality as the
-"production" bot, but won't interfere with users.<br/><br/>
-NEVER COMMIT YOUR TOKEN! Do amend commit if you did or create a new bot if you cannot.
+Документация по запуску в Heroku со скриншотами будет позже.
 
-0. If you live in a country which bans Telegram, you probably ought
-to enter proxy credentials and set `use-proxy: true` when running locally.
-Not all proxies are working, just try them until you find a working one.<br/><br/>
-(Note to myself: When deploying the bot, the outer servers are highly likely to work without any proxy, need to check)
+У автора проект лежит здесь: https://octoshellbot.herokuapp.com/.
 
-0. Run the project. It must be running without errors in console. The bot must be "alive" now
-and every message logged in console.
+### Как подготовить все части приложения к работе с нуля
+
+#### Telegram-бот
+
+Чтобы создать своего бота, нужно в Telegram зайти в чат к `@BotFather`.
+Он имеет список команд (например `/newbot`) для создания бота и других вещей (к ним есть
+документация в самом `@BotFather`).
+
+От бота для настроек нам будет нужен **токен** (его даст `@BotFather`) и **юзернейм** (имя бота, например у бота, созданного автором,
+юзернейм `OctoshellBot`).
+
+По желаниюв в настройках можно включить использование прокси (`use-proxy: true`). Но на зарубежных серверах этого обычно не требуется.
+
+#### ВКонтакте-бот
+
+Нужно создать своё сообщество. Зайдите на https://vk.com/groups и нажмите на кнопку `Создать сообщество`
+
+![](screenshots/vk-create.png)
+
+В новом сообществе зайдите в `Управление`
+
+![](screenshots/vk-upr.png)
+
+Выберите `Работа с API`
+
+![](screenshots/vk-api.png)
+
+Вы увидите ключ доступа. Его значение нужно скопировать и сохранить в файл настроек (**vk.access-token**).
+
+![](screenshots/vk-key.png)
+
+Во вкладке `Callback API` выберите версию API `5.102`. Напишите адрес, который будет принимать запросы от
+ВКонтакте (это url, где крутится эта программа, плюс `/vk`).
+
+В настройке напишите group id (**vk.group-id**) и строку, которую должен вернуть сервер (**vk.confirmation-code**)
+
+![](screenshots/vk-callback.png)
+
+Не забудьте подтвердить сервер, когда он будет поднят (кнопка `Подтвердить`). Также во вкладке `Типы событий` выберите тип
+`Входящее сообщение`, чтобы получать уведомления о таких событиях. Одного этого типа достаточно.
+
+![](screenshots/vk-types.png)
+
+Когда сервер будет готов, сообществу можно писать в сообщения, чтобы работать с этой программой.
+
+#### Octoshell
+
+Эта программа должна знать, куда посылать свои запросы от пользователей (в Octoshell).
+
+По умолчанию выбран путь `http://localhost:5000/core/bot_links_api`, что работает только при поднятом
+локально на порту `5000` Octoshell не старой версии.
+
+Если выбран неправильный путь, то программа работать будет, но без взаимодействия с Octoshell.
+
+#### MongoDB
+
+В проекте используется защищенная и отказоустойчивая база данных MongoDB, чтобы хранить состояния пользователей и их
+настройки.
+
+Осталось указать путь до MongoDB. Сайт https://www.mongodb.com/ предлагает настроить бесплатную базу данных.
+
+![](screenshots/monga.png)
+
+Скоро здесь появятся быстрые инструкции для создания своей базы данных, которую можно использовать в настройках.
