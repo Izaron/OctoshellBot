@@ -1,11 +1,12 @@
 package ru.octoshell.bot.service.statemachine.states.transistor;
 
-import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
+import org.apache.commons.lang3.tuple.Pair;
 import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
 
 public interface StateTransistorService {
-    UserState transition(UserState userState, OctoshellTelegramBot bot, Update update);
 
-    void explain(UserState userState, OctoshellTelegramBot bot, Update update);
+    Pair<UserState, Reaction> transition(UserState userState, Update update);
+    Reaction explain(UserState userState, Update update);
 }

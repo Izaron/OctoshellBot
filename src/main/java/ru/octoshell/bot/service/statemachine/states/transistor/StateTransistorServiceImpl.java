@@ -1,10 +1,11 @@
 package ru.octoshell.bot.service.statemachine.states.transistor;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
 import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
 import ru.octoshell.bot.service.statemachine.states.*;
 
 import java.util.Arrays;
@@ -43,25 +44,32 @@ public class StateTransistorServiceImpl implements StateTransistorService {
     }
 
     @Override
-    public UserState transition(UserState userState, OctoshellTelegramBot bot, Update update) {
+    public Pair<UserState, Reaction> transition(UserState userState, Update update) {
         State listener = findListenerByUserState(userState);
         if (Objects.nonNull(listener)) {
-            UserState newState = listener.transition(bot, update);
-            return Objects.isNull(newState) ? userState : newState;
+            Pair<UserState, Reaction> trans = listener.transition(update);
+            if (Objects.isNull(trans)) {
+                return Pair.of(userState, new Reaction());
+            } else if (Objects.isNull(trans.getLeft())) {
+                return Pair.of(userState, trans.getRight());
+            } else {
+                return trans;
+            }
         } else {
             log.error("Unknown user state '{}'!", userState);
-            return UserState.getDefaultState();
+            return Pair.of(UserState.getDefaultState(), new Reaction());
         }
     }
 
     @Override
-    public void explain(UserState userState, OctoshellTelegramBot bot, Update update) {
+    public Reaction explain(UserState userState, Update update) {
         State listener = findListenerByUserState(userState);
         if (Objects.nonNull(listener)) {
-            listener.explain(userState, bot, update);
+            return listener.explain(update);
         } else {
             log.error("Unknown user state '{}'!", userState);
         }
+        return new Reaction();
     }
 
     private State findListenerByUserState(UserState userState) {

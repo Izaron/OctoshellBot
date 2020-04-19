@@ -2,18 +2,13 @@ package ru.octoshell.bot.service.statemachine.states;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.octoshell.bot.service.locale.LocaleService;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
-import ru.octoshell.bot.service.statemachine.UserState;
 import ru.octoshell.bot.service.handler.userstate.UserStateService;
+import ru.octoshell.bot.service.locale.LocaleService;
+import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,25 +28,23 @@ public class LocaleSettingsState implements State {
     }
 
     @Override
-    public UserState transition(OctoshellTelegramBot bot, Update update) {
-        Message message = update.getMessage();
-
-        if (message.hasText()) {
-            String text = message.getText();
-            User user = message.getFrom();
-            String locale = userStateService.getUserLocale(user.getId());
+    public Pair<UserState, Reaction> transition(Update update) {
+        String text = update.getText();
+        if (!Objects.isNull(text)) {
+            Integer userId = update.getUserId();
+            String locale = userStateService.getUserLocale(userId);
             Button button = Button.findByText(localeService, locale, text);
 
             if (Objects.nonNull(button)) {
                 switch (button) {
                     case RUSSIAN:
-                        userStateService.setUserLocale(user.getId(), "ru");
-                        return UserState.MAIN_MENU;
+                        userStateService.setUserLocale(userId, "ru");
+                        return Pair.of(UserState.MAIN_MENU, null);
                     case ENGLISH:
-                        userStateService.setUserLocale(user.getId(), "en");
-                        return UserState.MAIN_MENU;
+                        userStateService.setUserLocale(userId, "en");
+                        return Pair.of(UserState.MAIN_MENU, null);
                     default:
-                        return UserState.MAIN_MENU;
+                        return Pair.of(UserState.MAIN_MENU, null);
                 }
             }
         }
@@ -59,44 +52,27 @@ public class LocaleSettingsState implements State {
         return null;
     }
 
-    private KeyboardRow buildRow(String locale, Button... buttons) {
-        KeyboardRow keyboardRow = new KeyboardRow();
+    private List<String> buildRow(String locale, Button... buttons) {
+        List<String> list = new ArrayList<>();
         for (Button button : buttons) {
             String desc = localeService.get(locale, button.getDesc());
-            keyboardRow.add(desc);
+            list.add(desc);
         }
-        return keyboardRow;
+        return list;
     }
 
     @Override
-    public void explain(UserState userState, OctoshellTelegramBot bot, Update update) {
-        Message message = update.getMessage();
-        Integer userId = message.getFrom().getId();
+    public Reaction explain(Update update) {
+        Integer userId = update.getUserId();
         String locale = userStateService.getUserLocale(userId);
 
-        SendMessage sendMessage = new SendMessage();
-
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
+        List<List<String>> keyboard = new ArrayList<>();
         keyboard.add(buildRow(locale, Button.RUSSIAN, Button.ENGLISH));
 
-        replyKeyboardMarkup.setKeyboard(keyboard);
-
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText(localeService.get(locale, "locale.message"));
-
-        try {
-            bot.send(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.toString());
-        }
+        Reaction reaction = new Reaction();
+        reaction.setKeyboard(keyboard);
+        reaction.setText(localeService.get(locale, "locale.message"));
+        return reaction;
     }
 
     private enum Button {

@@ -1,4 +1,4 @@
-package ru.octoshell.bot.service;
+package ru.octoshell.bot.service.api.telegram;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
@@ -15,15 +15,14 @@ import java.net.PasswordAuthentication;
 
 @Slf4j
 @Service
-public class TelegramApiRunnableService {
+public class TelegramApiWorker {
 
-    private final OctoshellTelegramBot octoshellTelegramBot;
+    private final TelegramApiWorkerBot telegramApiWorkerBot;
     private final TelegramSettingsService telegramSettingsService;
     private Thread botThread;
 
-    public TelegramApiRunnableService(OctoshellTelegramBot octoshellTelegramBot,
-                                      TelegramSettingsService telegramSettingsService) {
-        this.octoshellTelegramBot = octoshellTelegramBot;
+    public TelegramApiWorker(TelegramApiWorkerBot telegramApiWorkerBot, TelegramSettingsService telegramSettingsService) {
+        this.telegramApiWorkerBot = telegramApiWorkerBot;
         this.telegramSettingsService = telegramSettingsService;
     }
 
@@ -35,7 +34,7 @@ public class TelegramApiRunnableService {
 
     @PreDestroy
     public void preDestroy() {
-        log.info("Interrupt Bots Api Thread");
+        log.info("Interrupt Telegram Bot Api Thread");
         botThread.interrupt();
     }
 
@@ -67,7 +66,7 @@ public class TelegramApiRunnableService {
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
 
             try {
-                telegramBotsApi.registerBot(octoshellTelegramBot);
+                telegramBotsApi.registerBot(telegramApiWorkerBot);
             } catch (TelegramApiRequestException e) {
                 log.error(e.toString());
             }

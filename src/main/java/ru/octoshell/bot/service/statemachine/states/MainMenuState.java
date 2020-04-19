@@ -3,21 +3,16 @@ package ru.octoshell.bot.service.statemachine.states;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
 import ru.octoshell.bot.service.handler.userstate.UserStateService;
 import ru.octoshell.bot.service.locale.LocaleService;
 import ru.octoshell.bot.service.remote.core.RemoteCommandsService;
 import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,62 +36,51 @@ public class MainMenuState implements State {
     }
 
     @Override
-    public UserState transition(OctoshellTelegramBot bot, Update update) {
-        Message message = update.getMessage();
+    public Pair<UserState, Reaction> transition(Update update) {
+        String text = update.getText();
+        if (Objects.isNull(text)) {
+            return null;
+        }
 
-        if (message.hasText()) {
-            String text = message.getText();
-            User user = message.getFrom();
-            String locale = userStateService.getUserLocale(user.getId());
-            Button button = Button.findByText(localeService, locale, text);
+        String locale = userStateService.getUserLocale(update.getUserId());
+        Button button = Button.findByText(localeService, locale, text);
 
-            if (Objects.nonNull(button)) {
-                switch (button) {
-                    case TO_AUTH_SETTINGS:
-                        return UserState.AUTH_SETTINGS;
-                    case SHOW_USER_PROJECTS:
-                        showUserProjects(bot, update);
-                        break;
-                    case SHOW_TICKETS:
-                        showUserTickets(bot, update);
-                        break;
-                    case CREATE_TICKETS:
-                        return UserState.TICKET_PROJECT_CHOOSE;
-                    case TO_LOCALE_SETTINGS:
-                        return UserState.LOCALE_SETTINGS;
-                    case SHOW_INFORMATION:
-                        showInformation(bot, update);
-                        break;
-                    default:
-                        break;
-                }
+        if (Objects.nonNull(button)) {
+            switch (button) {
+                case TO_AUTH_SETTINGS:
+                    return Pair.of(UserState.AUTH_SETTINGS, null);
+                case SHOW_USER_PROJECTS:
+                    return Pair.of(null, showUserProjects(update));
+                case SHOW_TICKETS:
+                    Pair.of(null, showUserTickets(update));
+                case CREATE_TICKETS:
+                    return Pair.of(UserState.TICKET_PROJECT_CHOOSE, null);
+                case TO_LOCALE_SETTINGS:
+                    return Pair.of(UserState.LOCALE_SETTINGS, null);
+                case SHOW_INFORMATION:
+                    Pair.of(null, showInformation(update));
+                default:
+                    break;
             }
         }
 
         return null;
     }
 
-    private void showInformation(OctoshellTelegramBot bot, Update update) {
-        Integer userId = update.getMessage().getFrom().getId();
+    private Reaction showInformation(Update update) {
+        Integer userId = update.getUserId();
         String locale = userStateService.getUserLocale(userId);
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(userId.toString());
-        sendMessage.setText(localeService.get(locale, "main.information"));
-
-        try {
-            bot.send(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.toString());
-        }
+        Reaction reaction = new Reaction();
+        reaction.setText(localeService.get(locale, "main.information"));
+        return reaction;
     }
 
-    private void showUserProjects(OctoshellTelegramBot bot, Update update) {
-        Integer userId = update.getMessage().getFrom().getId();
+    private Reaction showUserProjects(Update update) {
+        Integer userId = update.getUserId();
         String locale = userStateService.getUserLocale(userId);
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(userId.toString());
+        Reaction reaction = new Reaction();
 
         Map<String, String> map = ImmutableMap.of(
                 "method", "user_projects"
@@ -106,7 +90,7 @@ public class MainMenuState implements State {
             JSONObject jsonObject = new JSONObject(remoteCommandsService.sendWithAuth(userId, map));
             String status = jsonObject.getString("status");
             if (StringUtils.equals(status, "fail")) {
-                sendMessage.setText(localeService.get(locale, "main.fail-auth"));
+                reaction.setText(localeService.get(locale, "main.fail-auth"));
             } else {
                 StringBuilder sb = new StringBuilder();
                 JSONArray projArray = jsonObject.getJSONArray("projects");
@@ -132,27 +116,22 @@ public class MainMenuState implements State {
                                 .append("\n");
                     }
                 }
-                sendMessage.setText(sb.toString());
+                reaction.setText(sb.toString());
             }
         } catch (Exception e) {
             log.error("Something wrong with showUserProjects()");
             log.error(e.toString());
-            sendMessage.setText(localeService.get(locale, "unavailable"));
+            reaction.setText(localeService.get(locale, "unavailable"));
         }
 
-        try {
-            bot.send(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.toString());
-        }
+        return reaction;
     }
 
-    private void showUserTickets(OctoshellTelegramBot bot, Update update) {
-        Integer userId = update.getMessage().getFrom().getId();
+    private Reaction showUserTickets(Update update) {
+        Integer userId = update.getUserId();
         String locale = userStateService.getUserLocale(userId);
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(userId.toString());
+        Reaction reaction = new Reaction();
 
         Map<String, String> map = ImmutableMap.of(
                 "method", "user_tickets"
@@ -162,7 +141,7 @@ public class MainMenuState implements State {
             JSONObject jsonObject = new JSONObject(remoteCommandsService.sendWithAuth(userId, map));
             String status = jsonObject.getString("status");
             if (StringUtils.equals(status, "fail")) {
-                sendMessage.setText(localeService.get(locale, "main.fail-auth"));
+                reaction.setText(localeService.get(locale, "main.fail-auth"));
             } else {
                 StringBuilder sb = new StringBuilder();
                 JSONArray ticketsArray = jsonObject.getJSONArray("tickets");
@@ -203,65 +182,42 @@ public class MainMenuState implements State {
                     sb.append(localeService.get(locale, "main.tickets.desc"))
                             .append(": ").append(message).append("\n");
                 }
-                sendMessage.setText(sb.toString());
-
-
+                reaction.setText(sb.toString());
             }
         } catch (Exception e) {
             log.error("Something wrong with showUserTickets()");
             log.error(e.toString());
-            sendMessage.setText(localeService.get(locale, "unavailable"));
+            reaction.setText(localeService.get(locale, "unavailable"));
         }
 
-        try {
-            bot.send(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.toString());
-        }
+        return reaction;
     }
 
-    private KeyboardRow buildRow(String locale, Button... buttons) {
-        KeyboardRow keyboardRow = new KeyboardRow();
+    private List<String> buildRow(String locale, Button... buttons) {
+        List<String> list = new ArrayList<>();
         for (Button button : buttons) {
             String desc = localeService.get(locale, button.getDesc());
-            keyboardRow.add(desc);
+            list.add(desc);
         }
-        return keyboardRow;
+        return list;
     }
 
     @Override
-    public void explain(UserState userState, OctoshellTelegramBot bot, Update update) {
-        Message message = update.getMessage();
-        Integer userId = message.getFrom().getId();
+    public Reaction explain(Update update) {
+        Integer userId = update.getUserId();
         String locale = userStateService.getUserLocale(userId);
 
-        SendMessage sendMessage = new SendMessage();
-
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
-
-        List<KeyboardRow> keyboard = new ArrayList<>();
-
+        List<List<String>> keyboard = new ArrayList<>();
         keyboard.add(buildRow(locale, Button.SHOW_USER_PROJECTS));
         keyboard.add(buildRow(locale, Button.SHOW_TICKETS, Button.CREATE_TICKETS));
         keyboard.add(buildRow(locale, Button.TO_AUTH_SETTINGS));
         keyboard.add(buildRow(locale, Button.TO_LOCALE_SETTINGS));
         keyboard.add(buildRow(locale, Button.SHOW_INFORMATION));
 
-        replyKeyboardMarkup.setKeyboard(keyboard);
-
-        sendMessage.setReplyMarkup(replyKeyboardMarkup);
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText(localeService.get(locale, "main.message"));
-
-        try {
-            bot.send(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.toString());
-        }
+        Reaction reaction = new Reaction();
+        reaction.setText(localeService.get(locale, "main.message"));
+        reaction.setKeyboard(keyboard);
+        return reaction;
     }
 
     private enum Button {

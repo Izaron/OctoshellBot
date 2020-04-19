@@ -7,7 +7,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.octoshell.bot.controller.notifiers.Notifier;
 import ru.octoshell.bot.model.BotLinkData;
 import ru.octoshell.bot.model.repository.BotLinkDataRepository;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
+import ru.octoshell.bot.service.api.telegram.TelegramApiWorkerBot;
 import ru.octoshell.bot.service.handler.userstate.UserStateService;
 import ru.octoshell.bot.service.locale.LocaleService;
 
@@ -19,14 +19,14 @@ import java.util.Optional;
 public class TicketNotifier implements Notifier {
 
     private final BotLinkDataRepository botLinkDataRepository;
-    private final OctoshellTelegramBot octoshellTelegramBot;
+    private final TelegramApiWorkerBot telegramApiWorkerBot;
     private final UserStateService userStateService;
     private final LocaleService localeService;
 
-    public TicketNotifier(BotLinkDataRepository botLinkDataRepository, OctoshellTelegramBot octoshellTelegramBot,
+    public TicketNotifier(BotLinkDataRepository botLinkDataRepository, TelegramApiWorkerBot telegramApiWorkerBot,
                           UserStateService userStateService, LocaleService localeService) {
         this.botLinkDataRepository = botLinkDataRepository;
-        this.octoshellTelegramBot = octoshellTelegramBot;
+        this.telegramApiWorkerBot = telegramApiWorkerBot;
         this.userStateService = userStateService;
         this.localeService = localeService;
     }
@@ -61,7 +61,7 @@ public class TicketNotifier implements Notifier {
         sendMessage.setText(text);
 
         try {
-            octoshellTelegramBot.send(sendMessage);
+            telegramApiWorkerBot.send(sendMessage);
         } catch (TelegramApiException e) {
             log.error(e.toString());
         }

@@ -1,8 +1,9 @@
 package ru.octoshell.bot.service.statemachine.states;
 
-import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
+import org.apache.commons.lang3.tuple.Pair;
 import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
 
 /**
  * Интерфейс для текущего состояния пользователя
@@ -11,17 +12,13 @@ public interface State {
 
     /**
      * Переход в другое состояние (возможно, в то же самое)
-     * @param bot Движок бота
      * @param update Последние действия пользователя
-     * @return
      */
-    UserState transition(OctoshellTelegramBot bot, Update update);
+    Pair<UserState, Reaction> transition(Update update);
 
     /**
      * Печать состояния: вывод информации и выбор следующего действия
-     * @param userState Текущее состояние
-     * @param bot Движок бота
      * @param update Последнее сообщение пользователя
      */
-    void explain(UserState userState, OctoshellTelegramBot bot, Update update);
+    Reaction explain(Update update);
 }

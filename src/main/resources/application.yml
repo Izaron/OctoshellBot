@@ -1,15 +1,20 @@
+# Spring Framework and common settings
+server:
+  port: ${PORT:8080}
+
 spring:
   profiles:
     active: test
   data:
     mongodb:
-      uri: mongodb+srv://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      uri: mongodb+srv://octopus:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-bot:
-  token: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+# Telegram API settings
+telegram:
+  token: 999999999:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   username: OctoshellBot
 
-  use-proxy: true
+  use-proxy: false
   proxy:
     host: zhum-eu.freeddns.org
     port: 9000
@@ -17,8 +22,15 @@ bot:
 
     use-auth: true
     auth:
-      user: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-      password: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+      user: XXXX
+      password: XXXXXXXXXXXXXXXXXX
 
+# VKontakte API settings
+vk:
+  group-id: 999999999
+  access-token: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  confirmation-code: xxxxxxxx
+
+# Octoshell main app settings
 remote:
-  url: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  url: http://localhost:5000/core/bot_links_api

@@ -1,17 +1,16 @@
 package ru.octoshell.bot.service.statemachine.states;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ForceReplyKeyboard;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.octoshell.bot.service.handler.extra.ExtraDataService;
-import ru.octoshell.bot.service.locale.LocaleService;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
-import ru.octoshell.bot.service.statemachine.UserState;
 import ru.octoshell.bot.service.handler.userstate.UserStateService;
+import ru.octoshell.bot.service.locale.LocaleService;
+import ru.octoshell.bot.service.statemachine.UserState;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
+
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -30,38 +29,26 @@ public class TicketSubjectChooseState implements State {
     }
 
     @Override
-    public UserState transition(OctoshellTelegramBot bot, Update update) {
-        Message message = update.getMessage();
-        if (message.hasText()) {
-            String text = message.getText();
-            Integer userId = message.getFrom().getId();
+    public Pair<UserState, Reaction> transition(Update update) {
+        String text = update.getText();
+        if (!Objects.isNull(text)) {
+            Integer userId = update.getUserId();
             extraDataService.put(userId, "subject", text);
 
-            return UserState.TICKET_MESSAGE_CHOOSE;
+            return Pair.of(UserState.TICKET_MESSAGE_CHOOSE, null);
         }
 
         return null;
     }
 
     @Override
-    public void explain(UserState userState, OctoshellTelegramBot bot, Update update) {
-        Message message = update.getMessage();
-        Integer userId = message.getFrom().getId();
+    public Reaction explain(Update update) {
+        Integer userId = update.getUserId();
         String locale = userStateService.getUserLocale(userId);
 
-        SendMessage sendMessage = new SendMessage();
-
-        ForceReplyKeyboard keyboard = new ForceReplyKeyboard();
-        keyboard.setSelective(false);
-        sendMessage.setReplyMarkup(keyboard);
-
-        sendMessage.setChatId(message.getChatId().toString());
-        sendMessage.setText(localeService.get(locale, "main.tickets.subject.message"));
-
-        try {
-            bot.send(sendMessage);
-        } catch (TelegramApiException e) {
-            log.error(e.toString());
-        }
+        Reaction reaction = new Reaction();
+        reaction.setForceReply(true);
+        reaction.setText(localeService.get(locale, "main.tickets.subject.message"));
+        return reaction;
     }
 }

@@ -1,14 +1,16 @@
 package ru.octoshell.bot.service.statemachine;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.objects.Message;
-import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.User;
-import ru.octoshell.bot.service.OctoshellTelegramBot;
 import ru.octoshell.bot.service.handler.userstate.UserStateService;
+import ru.octoshell.bot.service.statemachine.dto.Reaction;
+import ru.octoshell.bot.service.statemachine.dto.Update;
 import ru.octoshell.bot.service.statemachine.states.transistor.StateTransistorService;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 @Slf4j
@@ -24,27 +26,20 @@ public class StateMachineEngineService {
         this.stateTransistorService = stateTransistorService;
     }
 
-    public void processUpdate(OctoshellTelegramBot bot, Update update) {
-        // Filter wrong messages
-        Message message = update.getMessage();
-        if (!message.isUserMessage()) {
-            log.info("Is not user message!");
-            return;
-        }
-
-        User user = message.getFrom();
-        if (Objects.isNull(user)) {
-            log.info("Have no 'from' field in the message!");
-            return;
+    public List<Reaction> processUpdate(Update update) {
+        if (Objects.isNull(update)) {
+            log.info("Wrong update, don't do anything");
+            return Collections.emptyList();
         }
 
         // Change state and draw it
-        Integer userId = user.getId();
+        Integer userId = update.getUserId();
         UserState userState = userStateService.getUserState(userId);
 
-        UserState newUserState = stateTransistorService.transition(userState, bot, update);
-        stateTransistorService.explain(newUserState, bot, update);
+        Pair<UserState, Reaction> trans = stateTransistorService.transition(userState, update);
+        Reaction explain = stateTransistorService.explain(trans.getLeft(), update);
 
-        userStateService.setUserState(userId, newUserState);
+        userStateService.setUserState(userId, trans.getLeft());
+        return Arrays.asList(trans.getRight(), explain);
     }
 }

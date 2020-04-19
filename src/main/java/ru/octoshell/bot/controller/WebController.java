@@ -1,11 +1,14 @@
 package ru.octoshell.bot.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.octoshell.bot.controller.notifiers.Notifier;
+import ru.octoshell.bot.service.api.vk.VkApiWorker;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -16,9 +19,12 @@ import java.util.Map;
 public class WebController {
 
     private final Notifier ticketNotifier;
+    private final VkApiWorker vkApiWorker;
 
-    public WebController(Notifier ticketNotifier) {
+    public WebController(Notifier ticketNotifier,
+                         VkApiWorker vkApiWorker) {
         this.ticketNotifier = ticketNotifier;
+        this.vkApiWorker = vkApiWorker;
     }
 
     /**
@@ -30,4 +36,13 @@ public class WebController {
         ticketNotifier.notify(body);
     }
 
+    @GetMapping("/check")
+    public String check() {
+        return "Hello! Octoshell bot is working! Current time: " + LocalDateTime.now();
+    }
+
+    @PostMapping("/vk")
+    public String vk(@RequestBody String body) {
+        return vkApiWorker.work(body);
+    }
 }

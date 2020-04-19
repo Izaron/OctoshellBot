@@ -13,6 +13,9 @@ import org.springframework.web.client.RestTemplate;
 public class OctoshellBotApplication {
 
 	public static void main(String[] args) {
+//        TransportClient client = HttpTransportClient.getInstance();
+//        VkApiClient vk = new VkApiClient(client);
+
 		SpringApplication.run(OctoshellBotApplication.class, args);
 	}
 
