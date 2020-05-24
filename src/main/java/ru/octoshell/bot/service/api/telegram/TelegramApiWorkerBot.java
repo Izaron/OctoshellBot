@@ -78,7 +78,7 @@ public class TelegramApiWorkerBot extends TelegramLongPollingBot {
     }
 
     private void applyReaction(Reaction reaction, ru.octoshell.bot.service.statemachine.dto.Update update) {
-        if (Objects.isNull(reaction)) {
+        if (Objects.isNull(reaction) || Objects.isNull(reaction.getText())) {
             return;
         }
 
@@ -86,10 +86,7 @@ public class TelegramApiWorkerBot extends TelegramLongPollingBot {
         sendMessage.setChatId(update.getUserId().toString());
 
         // Set text
-        String text = reaction.getText();
-        if (Objects.nonNull(text)) {
-            sendMessage.setText(text);
-        }
+        sendMessage.setText(reaction.getText());
 
         // Set keyboard
         List<List<String>> keyboard = reaction.getKeyboard();

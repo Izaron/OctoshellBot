@@ -82,7 +82,7 @@ public class VkApiWorker {
         }
 
         private void applyReaction(Reaction reaction, Update update) {
-            if (Objects.isNull(reaction)) {
+            if (Objects.isNull(reaction) || Objects.isNull(reaction.getText())) {
                 return;
             }
 
@@ -91,10 +91,7 @@ public class VkApiWorker {
                     .randomId(random.nextInt());
 
             // Set text
-            String text = reaction.getText();
-            if (Objects.nonNull(text)) {
-                query.message(text);
-            }
+            query.message(reaction.getText());
 
             // Set keyboard
             List<List<String>> keyboardTexts = reaction.getKeyboard();
