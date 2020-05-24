@@ -52,13 +52,13 @@ public class MainMenuState implements State {
                 case SHOW_USER_PROJECTS:
                     return Pair.of(null, showUserProjects(update));
                 case SHOW_TICKETS:
-                    Pair.of(null, showUserTickets(update));
+                    return Pair.of(null, showUserTickets(update));
                 case CREATE_TICKETS:
                     return Pair.of(UserState.TICKET_PROJECT_CHOOSE, null);
                 case TO_LOCALE_SETTINGS:
                     return Pair.of(UserState.LOCALE_SETTINGS, null);
                 case SHOW_INFORMATION:
-                    Pair.of(null, showInformation(update));
+                    return Pair.of(null, showInformation(update));
                 default:
                     break;
             }
