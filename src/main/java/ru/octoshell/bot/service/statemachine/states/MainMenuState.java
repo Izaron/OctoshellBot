@@ -155,9 +155,9 @@ public class MainMenuState implements State {
 
                     String who = localeService.get(locale, "main.tickets.who-is-" +
                             ticket.getString("who"));
-                    String topicName = ticket.getString("topic_name_" + locale);
-                    String projectTitle = ticket.getString("project_title");
-                    String clusterName = ticket.getString("cluster_name_" + locale);
+                    String topicName = getJsonStringSafe(ticket, "topic_name_" + locale);
+                    String projectTitle = getJsonStringSafe(ticket, "project_title");
+                    String clusterName = getJsonStringSafe(ticket, "cluster_name_" + locale);
                     String subject = ticket.getString("subject");
                     String message = ticket.getString("message");
                     String state = ticket.getString("state");
@@ -191,6 +191,13 @@ public class MainMenuState implements State {
         }
 
         return reaction;
+    }
+
+    String getJsonStringSafe(JSONObject json, String key) {
+        if (json.has(key)) {
+            return json.getString(key);
+        }
+        return "<empty>";
     }
 
     private List<String> buildRow(String locale, Button... buttons) {
