@@ -151,7 +151,12 @@ public class MainMenuState implements State {
                         .append("\n");
 
                 for (int i = 0; i < ticketsArray.length(); i++) {
-                    JSONObject ticket = ticketsArray.getJSONObject(i);
+                    JSONObject ticket;
+                    try {
+                        ticket = ticketsArray.getJSONObject(i);
+                    } catch (Exception e) {
+                        continue;
+                    }
 
                     String who = localeService.get(locale, "main.tickets.who-is-" +
                             ticket.getString("who"));
@@ -194,7 +199,7 @@ public class MainMenuState implements State {
     }
 
     String getJsonStringSafe(JSONObject json, String key) {
-        if (json.has(key)) {
+        if (json.has(key) && !json.isNull(key)) {
             return json.getString(key);
         }
         return "<empty>";
