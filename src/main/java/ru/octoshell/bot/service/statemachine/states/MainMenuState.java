@@ -145,9 +145,19 @@ public class MainMenuState implements State {
             } else {
                 StringBuilder sb = new StringBuilder();
                 JSONArray ticketsArray = jsonObject.getJSONArray("tickets");
+
+                int correctTicketsCount = 0;
+                for (int i = 0; i < ticketsArray.length(); i++) {
+                    try {
+                        ticketsArray.getJSONObject(i);
+                        correctTicketsCount++;
+                    } catch (Exception ignored) {
+                    }
+                }
+
                 sb.append(localeService.get(locale, "main.tickets.header"))
                         .append(" ")
-                        .append(ticketsArray.length())
+                        .append(correctTicketsCount)
                         .append("\n");
 
                 for (int i = 0; i < ticketsArray.length(); i++) {
