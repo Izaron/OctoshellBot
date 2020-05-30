@@ -8,6 +8,7 @@ import ru.octoshell.bot.controller.notifiers.Notifier;
 import ru.octoshell.bot.model.BotLinkData;
 import ru.octoshell.bot.model.repository.BotLinkDataRepository;
 import ru.octoshell.bot.service.api.telegram.TelegramApiWorkerBot;
+import ru.octoshell.bot.service.api.vk.VkApiWorker;
 import ru.octoshell.bot.service.handler.userstate.UserStateService;
 import ru.octoshell.bot.service.locale.LocaleService;
 
@@ -20,13 +21,15 @@ public class TicketNotifier implements Notifier {
 
     private final BotLinkDataRepository botLinkDataRepository;
     private final TelegramApiWorkerBot telegramApiWorkerBot;
+    private final VkApiWorker vkApiWorker;
     private final UserStateService userStateService;
     private final LocaleService localeService;
 
     public TicketNotifier(BotLinkDataRepository botLinkDataRepository, TelegramApiWorkerBot telegramApiWorkerBot,
-                          UserStateService userStateService, LocaleService localeService) {
+                          VkApiWorker vkApiWorker, UserStateService userStateService, LocaleService localeService) {
         this.botLinkDataRepository = botLinkDataRepository;
         this.telegramApiWorkerBot = telegramApiWorkerBot;
+        this.vkApiWorker = vkApiWorker;
         this.userStateService = userStateService;
         this.localeService = localeService;
     }
@@ -51,19 +54,29 @@ public class TicketNotifier implements Notifier {
     private void sendNotification(String event, String ticketSubject, Integer userId) {
         LocaleService.LocaleHandler handler = localeService.buildHandler(userStateService.getUserLocale(userId));
 
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(userId.toString());
-
         String text = handler.get("notify.ticket.header") + "\n" +
                 handler.get("notify.ticket.subject") + ": \"" + ticketSubject + "\"\n" +
                 handler.get("notify.ticket.status." + event) + "\n";
 
+        sendTelegram(userId, text);
+        sendVk(userId, text);
+    }
+
+    private void sendTelegram(Integer userId, String text) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(userId.toString());
         sendMessage.setText(text);
 
         try {
+            // wrong send is possible
             telegramApiWorkerBot.send(sendMessage);
         } catch (TelegramApiException e) {
             log.error(e.toString());
         }
+    }
+
+    private void sendVk(Integer userId, String text) {
+        // wrong send is possible
+        vkApiWorker.sendMessage(userId, text);
     }
 }

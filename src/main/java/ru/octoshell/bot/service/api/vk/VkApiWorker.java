@@ -35,6 +35,8 @@ public class VkApiWorker {
     private final StateMachineEngineService stateMachineEngineService;
     private final ConversionService conversionService;
 
+    private Random random = new Random();
+
     public VkApiWorker(@Value("${vk.group-id}") Integer groupId,
                        @Value("${vk.access-token}") String accessToken,
                        @Value("${vk.confirmation-code}") String confirmationCode,
@@ -66,9 +68,22 @@ public class VkApiWorker {
         return null;
     }
 
-    public class CallbackApiHandler extends CallbackApi {
+    public void sendMessage(Integer userId, String text) {
+        MessagesSendQuery query = vk.messages().send(actor)
+                .peerId(userId)
+                .randomId(random.nextInt());
 
-        private Random random = new Random();
+        // Set text
+        query.message(text);
+
+        try {
+            query.execute();
+        } catch (ApiException | ClientException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public class CallbackApiHandler extends CallbackApi {
 
         @Override
         public void messageNew(Integer groupId, Message message) {
